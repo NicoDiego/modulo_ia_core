@@ -1,0 +1,33 @@
+# Generali: tratta tutto come testo
+* text=auto
+
+# Forza LF sui file .sh (script Bash)
+*.sh text eol=lf
+
+# Mantieni CRLF sui file .bat (batch Windows)
+*.bat text eol=crlf
+
+# Assicura LF anche sui file di configurazione YAML/JSON/MD
+*.yml  text eol=lf
+*.yaml text eol=lf
+*.json text eol=lf
+*.md   text eol=lf
+
+# Opzionale: evita modifiche ai file binari
+*.png  binary
+*.jpg  binary
+
+# Forza LF sui file di script Bash
+*.sh   text eol=lf
+
+# Mantieni CRLF sui batch Windows
+*.bat  text eol=crlf
+
+# Imposta LF anche su JSON e YAML
+*.json text eol=lf
+*.yml  text eol=lf
+*.yaml text eol=lf
+
+# File binari
+*.png  binary
+*.jpg  binary
