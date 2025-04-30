@@ -1,0 +1,6 @@
+date,click_id,amount,product
+2025-04-25 10:00:00,abc123,15.00,vitamina-d
+2025-04-25 11:00:00,abc123,10.00,vitamina-d
+2025-04-25 12:00:00,xyz456,12.50,omega-3
+2025-04-25 13:00:00,abc123,20.00,vitamina-d
+2025-04-25 14:00:00,lmn789,5.00,crema-antirughe

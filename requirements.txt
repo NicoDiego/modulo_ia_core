@@ -1,0 +1,9 @@
+openai
+python-dotenv
+requests
+pandas
+beautifulsoup4
+pytest
+deep-translator
+pytrends
+pillow

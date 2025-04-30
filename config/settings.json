@@ -1,0 +1,82 @@
+{
+  "openai_api_key": "sk-…",
+  "pixabay_api_key": "46296383-2b959b198c6b91ebdfd0d1aaa",
+  "wp_site_url": "https://salutealbenessere.it",
+  "wp_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczovL3NhbHV0ZWFsYmVuZXNzZXJlLml0IiwiaWF0IjoxNzQ1Njc2NDY3LCJuYmYiOjE3NDU2NzY0NjcsImV4cCI6MTc0NjI4MTI2NywiZGF0YSI6eyJ1c2VyIjp7ImlkIjoiMyJ9fX0.wyIbPU-zrXGpvB0M9Lywuc5RStUauLHM_q9MjSDIu7Q",
+  "languages": [
+    "it",
+    "en",
+    "es",
+    "fr",
+    "de",
+    "pt",
+    "ar",
+    "zh-CN",
+    "ja",
+    "ko",
+    "nl",
+    "ru",
+    "pl",
+    "sv",
+    "no",
+    "da",
+    "fi",
+    "tr",
+    "id",
+    "ms",
+    "th",
+    "vi",
+    "cs",
+    "ro",
+    "hu",
+    "el",
+    "iw",
+    "uk",
+    "bg",
+    "hr",
+    "sl",
+    "sk",
+    "lt",
+    "lv",
+    "et",
+    "sr",
+    "ca",
+    "hi",
+    "bn",
+    "fa",
+    "ur",
+    "af",
+    "sq",
+    "sw",
+    "tl"
+  ],
+  "affiliate_sources": [
+    "amazon",
+    "awin",
+    "nutriprofits",
+    "ebay"
+  ],
+  "article_length": 600,
+  "auto_publish": true,
+  "csv_affiliate_path": "./data/nutriprofits_links.csv",
+  "json_affiliate_path": "./data/nutriprofits_links.json",
+  "seo_plugin": "yoast",
+  "publish_settings": {
+    "default_mode": "draft",
+    "max_articles_per_day": 10,
+    "per_language": {
+      "it": {
+        "mode": "publish",
+        "max_articles": 20
+      },
+      "en": {
+        "mode": "draft",
+        "max_articles": 10
+      },
+      "es": {
+        "mode": "publish",
+        "max_articles": 10
+      }
+    }
+  }
+}
