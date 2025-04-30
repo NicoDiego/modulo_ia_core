@@ -1,0 +1,54 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+venv/
+
+# Environment variables and secrets
+.env
+in.save
+PAAPICredentials.csv
+
+# Logs
+logs/
+*.log
+
+# Output files (articoli generati, report, ecc.)
+output/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+.vscode/
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+venv/
+
+# Environment variables and secrets
+.env
+in.save
+PAAPICredentials.csv
+
+# Logs
+logs/
+*.log
+
+# Output files (articoli generati, report)
+output/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+.vscode/
+
