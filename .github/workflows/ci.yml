@@ -32,10 +32,15 @@ jobs:
           pip install -r requirements.txt
 
       # 4) Linting con flake8 (assicurati di avere flake8 in requirements o installalo qui)
-      - name: Lint with flake8
+          - name: Lint with flake8
         run: |
           pip install flake8
-          flake8 modules config run_ai.py genera_conversion_report.py start.sh
+          # Escludiamo start.sh (shell) e limitiamo la lunghezza linea a 120
+          flake8 \
+            --max-line-length=120 \
+            --exclude=start.sh \
+            modules config run_ai.py genera_conversion_report.py get_token.py
+
 
       # 5) Esegui i test con pytest
       - name: Run tests
