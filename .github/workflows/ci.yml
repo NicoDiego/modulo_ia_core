@@ -1,0 +1,51 @@
+# .github/workflows/ci.yml
+
+name: CI/CD Pipeline
+
+# Scatta ad ogni push o PR su main
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build_and_test:
+    # Usa una VM Ubuntu per i job
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1) Clona il repo
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # 2) Setup Python
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      # 3) Install dependencies
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      # 4) Linting con flake8 (assicurati di avere flake8 in requirements o installalo qui)
+      - name: Lint with flake8
+        run: |
+          pip install flake8
+          flake8 modules config run_ai.py genera_conversion_report.py start.sh
+
+      # 5) Esegui i test con pytest
+      - name: Run tests
+        run: |
+          pytest --maxfail=1 --disable-warnings -q
+
+      # 6) Build Docker image (senza push)
+      - name: Build Docker image
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          push: false
+          tags: modulo-ia-core:ci-latest
