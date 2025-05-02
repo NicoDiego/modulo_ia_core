@@ -1,52 +1,47 @@
 # Stage 1: builder
- FROM python:3.10-slim AS builder
+FROM python:3.10-slim AS builder
 
- WORKDIR /app
+WORKDIR /app
 
--# Installa build essentials (se servono)
--RUN apt-get update && apt-get install -y --no-install-recommends \
--    build-essential \
-- && rm -rf /var/lib/apt/lists/*
+# Installa git e build-essential per poter pip install git+...
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends \
+    git \
+    build-essential \
+ && rm -rf /var/lib/apt/lists/*
 
-+# Installa git e build essentials per clonare e compilare dipendenze da git
-+RUN apt-get update \
-+ && apt-get install -y --no-install-recommends \
-+    git \
-+    build-essential \
-+ && rm -rf /var/lib/apt/lists/*
+# Copia e installa le dipendenze
+COPY requirements.txt .
+RUN pip install --upgrade pip \
+ && pip install --no-cache-dir -r requirements.txt
 
- # Copia e installa le dipendenze
- COPY requirements.txt .
- RUN pip install --upgrade pip \
-  && pip install --no-cache-dir -r requirements.txt
+# Copia tutto il codice nel builder
+COPY . .
 
- # Copia il codice
- COPY . .
- 
 # Stage 2: runtime
- FROM python:3.10-slim
+FROM python:3.10-slim
 
- WORKDIR /app
+WORKDIR /app
 
- # Installa bash per start.sh
--RUN apt-get update \
-- && apt-get install -y --no-install-recommends bash \
-- && rm -rf /var/lib/apt/lists/*
-+RUN apt-get update \
-+ && apt-get install -y --no-install-recommends bash \
-+ && rm -rf /var/lib/apt/lists/*
+# Installa bash per lo start.sh
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends bash \
+ && rm -rf /var/lib/apt/lists/*
 
- # Crea utente non-root
- RUN useradd -m appuser
- USER appuser
+# Crea un utente non-root
+RUN useradd -m appuser
+USER appuser
 
- # Copia file e dipendenze dal builder
- COPY --from=builder /usr/local/lib/python3.10/site-packages /usr/local/lib/python3.10/site-packages
- COPY --from=builder /usr/local/bin /usr/local/bin
- COPY --from=builder /app /app
+# Copia dipendenze e codice dal builder
+COPY --from=builder /usr/local/lib/python3.10/site-packages /usr/local/lib/python3.10/site-packages
+COPY --from=builder /usr/local/bin /usr/local/bin
+COPY --from=builder /app /app
 
- RUN chmod +x start.sh
+# Rendi eseguibile lo script di avvio
+RUN chmod +x start.sh
 
- EXPOSE 8501
- VOLUME ["/app/data","/app/output","/app/logs"]
- ENTRYPOINT ["./start.sh"]
+# Monta i volumi per persistere dati
+VOLUME ["/app/data", "/app/output", "/app/logs"]
+
+# Entry point
+ENTRYPOINT ["./start.sh"]
