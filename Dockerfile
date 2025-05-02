@@ -1,6 +1,5 @@
-# Stage 1: builder
-FROM python:3.10-slim AS builder
-
+# Stage 2: runtime
+FROM python:3.10-slim
 WORKDIR /app
 
 # Installa git e build-essential per poter pip install git+...
