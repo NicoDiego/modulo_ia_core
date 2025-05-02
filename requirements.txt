@@ -7,3 +7,9 @@ pytest
 deep-translator
 pytrends
 pillow
+
+# Per Amazon PAAPI v5
+git+https://github.com/hirotoshi/paapi5-python-sdk.git#egg=paapi5_python_sdk
+
+# riga 12 (o simile) in requirements.txt
+git+https://github.com/hirotoshi/paapi5-python-sdk.git#egg=paapi5_python_sdk
