@@ -7,7 +7,7 @@ from config.settings_loader import settings, BASE_DIR, DATA_DIR, OUTPUT_DIR, LOG
 from get_token import get_jwt_token
 from modules.trend_hunter import get_trending_keywords, SUPPORTED_LANGS
 from modules.adaptive_strategy import adjust_generation_params
-from modules.content_generator import generate_article, insert_product_boxes, safe_write
+from modules.content_generator import generate_article, insert_product_boxes
 from modules.translator import translate_text
 from modules.seo_optimizer import apply_seo_structure, calculate_reading_time
 from modules.affiliate_api.loader import load_affiliate_links
