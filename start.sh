@@ -1,20 +1,16 @@
 #!/usr/bin/env bash
 set -e
 
-# 1) Posizionati nella dir dello script
+# Spostati nella dir dello script
 cd "$(dirname "$0")"
 
-# 2) Attiva o crea virtualenv
-if [ ! -d "venv" ]; then
-  echo "Creazione venv..."
-  python3 -m venv venv
+# Se esiste un venv (solo per l'uso in locale), attivalo
+if [ -f "venv/bin/activate" ]; then
+  echo "[start.sh] Attivo venv locale"
+  source venv/bin/activate
+else
+  echo "[start.sh] Nessun venv, uso Python di sistema"
 fi
-source venv/bin/activate
 
-# 3) Installa dipendenze
-pip install --upgrade pip
-pip install -r requirements.txt
-
-# 4) Avvia pipeline
-echo "Avvio pipeline AI..."
+# Esegui direttamente lo script principale (le dipendenze sono già nell'immagine)
 python run_ai.py "$@"
