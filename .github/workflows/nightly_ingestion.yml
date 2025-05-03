@@ -24,4 +24,4 @@ jobs:
           python modules/metrics_ingestion.py \
             --clicks-path data/clicks.csv \
             --conversions-path data/conversions.csv \
-            --revenue-path data/revenue.csv
+            --revenue-path data/conversion_report.csv
