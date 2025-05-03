@@ -1,3 +1,4 @@
+# File: .github/workflows/ci.yml
 name: CI/CD Pipeline
 
 on:
@@ -11,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v3
 
       - name: Set up Python 3.10
@@ -24,13 +25,13 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Lint with flake8 (temporarily ignore known issues)
+      - name: Lint with flake8 (temporarily ignore spacing/style errors)
         run: |
           pip install flake8
           flake8 \
             --max-line-length=120 \
-            --ignore=E203,E221,E226,E231,E272,E302,E303,E305,E401,E402,E501,F401,F811,F821,F841,W292,W293,W391 \
-            modules run_ai.py scripts
+            --ignore=E221,E302,E303,E402,E241 \
+            --exclude=.github,venv
 
       - name: Run tests
         run: |
@@ -42,4 +43,3 @@ jobs:
           context: .
           push: false
           tags: modulo-ia-core:ci-latest
-
