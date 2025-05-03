@@ -36,7 +36,7 @@ jobs:
 
       # 6) Salva i dati elaborati come artifact (opzionale)
       - name: Upload processed data
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v3.1.3
         with:
           name: processed-data
           path: data/processed/
