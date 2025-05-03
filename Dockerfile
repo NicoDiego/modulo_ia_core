@@ -1,15 +1,18 @@
-# Stage 2: runtime
-FROM python:3.10-slim
+# -----------------------------------------------------------------------------
+# Stage 1: builder – installa git e build tools, e installa tutte le dipendenze
+# -----------------------------------------------------------------------------
+FROM python:3.10-slim AS builder
+
 WORKDIR /app
 
-# Installa git e build-essential per poter pip install git+...
+# Installa git (per pip install git+…) e build-essential
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \
-    git \
-    build-essential \
+      git \
+      build-essential \
  && rm -rf /var/lib/apt/lists/*
 
-# Copia e installa le dipendenze
+# Copia requirements e installa tutto, incluso il pacchetto git+
 COPY requirements.txt .
 RUN pip install --upgrade pip \
  && pip install --no-cache-dir -r requirements.txt
@@ -17,7 +20,9 @@ RUN pip install --upgrade pip \
 # Copia tutto il codice nel builder
 COPY . .
 
-# Stage 2: runtime
+# -----------------------------------------------------------------------------
+# Stage 2: runtime – immagine pulita, senza git o build-tools
+# -----------------------------------------------------------------------------
 FROM python:3.10-slim
 
 WORKDIR /app
@@ -27,20 +32,17 @@ RUN apt-get update \
  && apt-get install -y --no-install-recommends bash \
  && rm -rf /var/lib/apt/lists/*
 
-# Crea un utente non-root
-RUN useradd -m appuser
-USER appuser
-
-# Copia dipendenze e codice dal builder
+# Copia solo ciò che serve dal builder
 COPY --from=builder /usr/local/lib/python3.10/site-packages /usr/local/lib/python3.10/site-packages
 COPY --from=builder /usr/local/bin /usr/local/bin
 COPY --from=builder /app /app
 
-# Rendi eseguibile lo script di avvio
-RUN chmod +x start.sh
+# Rendi eseguibile lo script e assicura che root possieda /app
+RUN chmod +x /app/start.sh \
+ && chown -R root:root /app
 
 # Monta i volumi per persistere dati
 VOLUME ["/app/data", "/app/output", "/app/logs"]
 
-# Entry point
+# Entry point verso lo script d’avvio (girerà come root)
 ENTRYPOINT ["./start.sh"]

@@ -1,0 +1,61 @@
+name: Evaluate & Deploy Model
+
+# Si attiva quando finisce con successo il training notturno
+on:
+  workflow_run:
+    workflows: ["Nightly Model Training"]
+    types: [completed]
+
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download trained model
+        uses: actions/download-artifact@v3
+        with:
+          name: trained-model
+          path: models
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Evaluate model
+        run: python scripts/evaluate_model.py \
+               --model-dir models \
+               --data-dir  data/processed
+
+      - name: Upload metrics
+        uses: actions/upload-artifact@v3
+        with:
+          name: evaluation-metrics
+          path: models/metrics.json
+
+  deploy:
+    needs: evaluate
+    runs-on: ubuntu-latest
+    # deploy solo se accuracy nuova > accuracy vecchia
+    if: ${{ fromJson(needs.evaluate.outputs.metrics).accuracy > fromJson(needs.evaluate.outputs.metrics_old).accuracy }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download trained model
+        uses: actions/download-artifact@v3
+        with:
+          name: trained-model
+          path: models
+
+      - name: Deploy to production
+        run: python scripts/deploy_model.py \
+               --model-path models/model.h5

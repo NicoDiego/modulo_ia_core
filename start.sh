@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 set -e
 
-# Spostati nella dir dello script
+# 1) Posizionati nella dir dello script
 cd "$(dirname "$0")"
 
-# Se esiste un venv (solo per l'uso in locale), attivalo
+# 2) Se usi venv in locale, attivalo (in container non c’è venv)
 if [ -f "venv/bin/activate" ]; then
   echo "[start.sh] Attivo venv locale"
   source venv/bin/activate
@@ -12,5 +12,11 @@ else
   echo "[start.sh] Nessun venv, uso Python di sistema"
 fi
 
-# Esegui direttamente lo script principale (le dipendenze sono già nell'immagine)
+# 3) Crea le cartelle se non esistono
+mkdir -p logs data output
+
+# 4) (Facoltativo) prova a cambiare permessi, ma ignora l’errore su bind-mount Windows
+chmod 777 logs || true
+
+# 5) Esegui lo script principale
 python run_ai.py "$@"

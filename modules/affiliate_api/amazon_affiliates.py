@@ -1,57 +1,43 @@
-import os
-from dotenv import load_dotenv
-
-# Carica automaticamente le variabili dal file .env
-load_dotenv()
-
-# Esempio di come leggere variabili ambiente:
-wp_api_url = os.getenv('WP_API_URL')
-wp_auth_token = os.getenv('WP_AUTH_TOKEN')
-amazon_api_key = os.getenv('AMAZON_API_KEY')
-
-
 # modules/affiliate_api/amazon_affiliates.py
 
 import os
 from paapi5_python_sdk.api.default_api import DefaultApi
-from paapi5_python_sdk.configuration import Configuration
-from paapi5_python_sdk.models import SearchItemsRequest, PartnerType
+from paapi5_python_sdk.search_items_request import SearchItemsRequest
+from paapi5_python_sdk.partner_type import PartnerType
+from paapi5_python_sdk.rest import ApiException
 
-# Carica credenziali da env o da config/settings_loader
-ACCESS_KEY    = os.getenv("AMAZON_PAAPI_ACCESS_KEY")
-SECRET_KEY    = os.getenv("AMAZON_PAAPI_SECRET_KEY")
-PARTNER_TAG   = os.getenv("AMAZON_PAAPI_PARTNER_TAG")
-HOST          = "webservices.amazon.it"
-REGION        = "eu-west-1"
+# Puoi parametrizzare questi valori in un .env o in settings.json
+ACCESS_KEY   = os.getenv("PAAPI_ACCESS_KEY")
+SECRET_KEY   = os.getenv("PAAPI_SECRET_KEY")
+PARTNER_TAG  = os.getenv("PAAPI_PARTNER_TAG")
+HOST         = "webservices.amazon.com"
+REGION       = "us-east-1"
 
-def fetch_amazon_products(keyword: str, count: int = 3):
-    """Restituisce fino a `count` prodotti Amazon per `keyword`."""
-    conf = Configuration(
+def fetch_amazon_products(keywords: str, item_count: int = 3):
+    """
+    Restituisce una lista di oggetti prodotto dal SearchItems della PAAPI 5.0.
+    """
+    api = DefaultApi(
         access_key=ACCESS_KEY,
         secret_key=SECRET_KEY,
         host=HOST,
         region=REGION
     )
-    api = DefaultApi(api_client=conf.get_api_client())
+
     request = SearchItemsRequest(
-        Keywords=keyword,
-        SearchIndex="All",
-        ItemCount=count,
-        PartnerTag=PARTNER_TAG,
-        PartnerType=PartnerType.ASSOCIATES
+        partner_tag=PARTNER_TAG,
+        partner_type=PartnerType.ASSOCIATES,
+        keywords=keywords,
+        search_index="All",
+        item_count=item_count,
+        # resources=[...]  # aggiungi se ti servono immagini, prezzi, ecc.
     )
-    response = api.search_items(request)
-    results = []
-    for item in response.search_result.items[:count]:
-        title      = item.item_info.title.display_value
-        url        = item.detail_page_url
-        image_url  = item.images.primary.large.url
-        price      = item.offers.listings[0].price.display_amount
-        results.append({
-            "nome": title,
-            "url":   url,
-            "image_url": image_url,
-            "price": price
-        })
-    return results
+
+    try:
+        response = api.search_items(request)
+        # Se vuoi, trasformi response.search_result.items in un dict o modello tuo
+        return response.search_result.items or []
+    except ApiException as e:
+        print(f"[Amazon PAAPI] Errore {e.status}: {e.body}")
+        return []
 
