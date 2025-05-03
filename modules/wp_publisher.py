@@ -1,105 +1,144 @@
+import json
+import logging
 import os
-from dotenv import load_dotenv
-
-# Carica automaticamente le variabili dal file .env
-load_dotenv()
-
-# Esempio di come leggere variabili ambiente:
-wp_api_url = os.getenv('WP_API_URL')
-wp_auth_token = os.getenv('WP_AUTH_TOKEN')
-amazon_api_key = os.getenv('AMAZON_API_KEY')
 
 import requests
-import json
-from .image_fetcher import fetch_image_url
-from .video_fetcher import fetch_video_url
-from .publish_manager import can_publish, mark_published  # <-- importiamo il manager
+from dotenv import load_dotenv
 
-def publish_to_wp(title, content, slug, lang="it",
-                  meta_title=None, meta_description=None,
-                  category=None, add_media=True):
-    # …
+from config.settings_loader import settings
+from .image_fetcher import fetch_image_url, ImageNotFoundError
+from .video_fetcher import fetch_video_url, VideoNotFoundError
+from .publish_manager import can_publish, mark_published
 
 
-    from config.settings_loader import settings
-    WP_SITE_URL   = settings.get('wp_site_url')
-    WP_TOKEN      = settings.get('wp_token')
+# Carico le variabili d’ambiente (meglio farlo qui, una sola volta)
+load_dotenv()
 
-    # 1) Verifica se possiamo pubblicare questo articolo (draft vs publish e limiti)
-    if not can_publish(lang, category):
-        status = "draft"
-    else:
-        status = "publish"
+# Configurazione logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='[%(asctime)s] %(levelname)s: %(message)s'
+)
+
+# Costanti configurate a runtime
+WP_SITE_URL = settings.get('wp_site_url')
+WP_TOKEN    = settings.get('wp_token')
+
+
+def publish_to_wp(
+    title,
+    content,
+    slug,
+    lang="it",
+    meta_title=None,
+    meta_description=None,
+    category=None,
+    add_media=True
+):
+    """
+    Pubblica un articolo su WordPress (solo draft se superati i limiti)
+    e gestisce featured image e video embed.
+    """
+
+    # 1) Decido lo status in base ai limiti
+    status = "publish" if can_publish(lang, category) else "draft"
 
     headers = {
         "Authorization": f"Bearer {WP_TOKEN}",
         "Content-Type":  "application/json"
     }
 
-    # 2) Media (immagine e video)
-    featured_media_url = video_url = None
     featured_media_id = None
+    image_url = None
+    video_url = None
+
+    # 2) Provo a recuperare media (immagine + video)
     if add_media:
         try:
-            featured_media_url = fetch_image_url(title, lang)
-            video_url          = fetch_video_url(title, lang)
-        except Exception as e:
-            print(f"⚠️ Errore media: {e}")
+            image_url = fetch_image_url(title, lang)
+        except ImageNotFoundError as e:
+            logging.warning("Nessuna immagine trovata per '%s' (%s): %s", title, lang, e)
 
-    # video embed sotto titolo
+        try:
+            video_url = fetch_video_url(title, lang)
+        except VideoNotFoundError as e:
+            logging.warning("Nessun video trovato per '%s' (%s): %s", title, lang, e)
+
+    # 2a) Inserisco video embed all’inizio del contenuto
     if video_url:
         video_embed = (
-            f'<div style="text-align:center;">'
-            f'<video controls width="100%">'
+            '<div style="text-align:center;">'
+            '<video controls width="100%">'
             f'<source src="{video_url}" type="video/mp4">'
-            f'</video></div><br>'
+            '</video></div><br>\n'
         )
-        content = f"{video_embed}\n{content}"
+        content = video_embed + content
 
-    # immagine in evidenza
-    if featured_media_url:
-        resp = requests.post(
-            f"{WP_SITE_URL}/wp-json/wp/v2/media",
-            headers={
-                "Authorization":        f"Bearer {WP_TOKEN}",
-                "Content-Disposition":  f"attachment; filename={slug}.jpg",
-                "Content-Type":         "image/jpeg"
-            },
-            data=requests.get(featured_media_url).content
-        )
-        if resp.status_code in (200,201):
-            featured_media_id = resp.json().get("id")
+    # 2b) Carico featured image su WP
+    if image_url:
+        img_resp = requests.get(image_url)
+        if img_resp.ok:
+            resp = requests.post(
+                f"{WP_SITE_URL}/wp-json/wp/v2/media",
+                headers={
+                    "Authorization":       f"Bearer {WP_TOKEN}",
+                    "Content-Disposition": f"attachment; filename={slug}.jpg",
+                    "Content-Type":        "image/jpeg"
+                },
+                data=img_resp.content
+            )
+            if resp.ok:
+                featured_media_id = resp.json().get("id")
+            else:
+                logging.error(
+                    "Upload immagine fallito per '%s' (%s): %s",
+                    title, lang, resp.text
+                )
+        else:
+            logging.error(
+                "Download immagine fallito (%s): %s",
+                image_url, img_resp.status_code
+            )
 
-    # 3) Costruzione payload
-    data = {
-        "title":   title,
-        "slug":    slug,
-        "content": content,
-        "status":  status,
+    # 3) Costruisco il payload per il post
+    payload = {
+        "title":      title,
+        "slug":       slug,
+        "content":    content,
+        "status":     status,
         "categories": [],
-        "lang":    lang,
+        "lang":       lang,
     }
+
     if meta_title or meta_description:
-        data["yoast_head_json"] = {}
-        if meta_title:       data["yoast_head_json"]["title"]       = meta_title
-        if meta_description: data["yoast_head_json"]["description"] = meta_description
+        payload["yoast_head_json"] = {}
+        if meta_title:
+            payload["yoast_head_json"]["title"] = meta_title
+        if meta_description:
+            payload["yoast_head_json"]["description"] = meta_description
 
     if featured_media_id:
-        data["featured_media"] = featured_media_id
+        payload["featured_media"] = featured_media_id
 
-    # 4) Chiamata API
-    res = requests.post(
+    # 4) Invio la richiesta di pubblicazione
+    post_resp = requests.post(
         f"{WP_SITE_URL}/wp-json/wp/v2/posts",
         headers=headers,
-        data=json.dumps(data)
+        json=payload
     )
-    if res.status_code not in (200,201):
-        print(f"❌ Errore pubblicazione {title} ({lang}):", res.text)
+
+    if not post_resp.ok:
+        logging.error(
+            "Pubblicazione fallita '%s' (%s): %s",
+            title, lang, post_resp.text
+        )
         return
 
-    print(f"✅ Pubblicato su WordPress: {title} ({lang}) – status: {status}")
+    logging.info(
+        "✅ Pubblicato su WP: '%s' (%s) — status: %s",
+        title, lang, status
+    )
 
-    # 5) Se è stato veramente pubblicato, aggiorniamo i contatori
+    # 5) Aggiorno i contatori se ho effettivamente pubblicato
     if status == "publish":
         mark_published(lang, category)
-
