@@ -1,12 +1,47 @@
--      - name: Run metrics ingestion
--        run: |
--          python modules/metrics_ingestion.py \
--            --clicks-path      data/clicks.csv \
--            --conversions-path data/conversions.csv \
--            --revenue-path     data/conversion_report.csv
-+      - name: Run metrics ingestion
-+        run: |
-+          python -m modules.metrics_ingestion \
-+            --clicks-path      data/clicks.csv \
-+            --conversions-path data/conversions.csv \
-+            --revenue-path     data/conversion_report.csv
+# File: .github/workflows/nightly_metrics_ingestion.yml
+name: Nightly Metrics Ingestion
+
+# autorizzazioni necessarie per checkout, workflow-run e artifact
+permissions:
+  contents: read      # per checkout del codice
+  actions: write      # per upload/download-artifact
+
+on:
+  schedule:
+    - cron: '0 2 * * *'  # ogni giorno alle 02:00 UTC
+  workflow_dispatch:    # abilita il “Run workflow” manuale
+
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+    env:
+      DB_HOST:     ${{ secrets.DB_HOST }}
+      DB_PORT:     ${{ secrets.DB_PORT }}
+      DB_NAME:     ${{ secrets.DB_NAME }}
+      DB_USER:     ${{ secrets.DB_USER }}
+      DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: pip install --no-cache-dir -r requirements.txt
+
+      - name: Run metrics ingestion
+        run: |
+          python -m modules.metrics_ingestion \
+            --clicks-path      data/clicks.csv \
+            --conversions-path data/conversions.csv \
+            --revenue-path     data/conversion_report.csv
+
+      - name: Upload metrics artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: metrics-report
+          path: modules/output/metrics.json
