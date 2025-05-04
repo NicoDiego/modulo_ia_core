@@ -1,0 +1,12 @@
+-      - name: Run metrics ingestion
+-        run: |
+-          python modules/metrics_ingestion.py \
+-            --clicks-path      data/clicks.csv \
+-            --conversions-path data/conversions.csv \
+-            --revenue-path     data/conversion_report.csv
++      - name: Run metrics ingestion
++        run: |
++          python -m modules.metrics_ingestion \
++            --clicks-path      data/clicks.csv \
++            --conversions-path data/conversions.csv \
++            --revenue-path     data/conversion_report.csv
