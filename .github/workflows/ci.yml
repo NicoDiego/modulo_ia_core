@@ -1,6 +1,12 @@
 # .github/workflows/ci.yml
 name: CI/CD Pipeline
 
+# autorizzazioni per upload‑artifact / download‑artifact
+permissions:
+  contents: read      # per checkout e lettura repo
+  actions:  read      # per eseguire altri workflow
+  packages: write     # per upload/download artifact
+
 on:
   push:
     branches: [ main ]
