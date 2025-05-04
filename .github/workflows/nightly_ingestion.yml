@@ -9,9 +9,6 @@ permissions:
 on:
   schedule:
     - cron: '0 2 * * *'  # ogni giorno alle 02:00 UTC
-+on:
-+  schedule:
-+    - cron: '0 2 * * *'  # ogni giorno alle 02:00 UTC
 +  workflow_dispatch:    # ← abilita il “Run workflow” manuale
 jobs:
   ingest:
