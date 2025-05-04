@@ -5,10 +5,14 @@ permissions:
   contents: read      # per checkout e lettura repo
   actions:  read      # per eseguire altri workflow
   packages: write     # per upload/download artifact
-  
+
 on:
   schedule:
     - cron: '0 2 * * *'  # ogni giorno alle 02:00 UTC
++on:
++  schedule:
++    - cron: '0 2 * * *'  # ogni giorno alle 02:00 UTC
++  workflow_dispatch:    # ← abilita il “Run workflow” manuale
 jobs:
   ingest:
     runs-on: ubuntu-latest
