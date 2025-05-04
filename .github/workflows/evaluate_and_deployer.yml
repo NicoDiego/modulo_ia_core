@@ -1,5 +1,14 @@
 name: Evaluate & Deploy Model
 
+
+# autorizzazioni per upload‑artifact / download‑artifact
+permissions:
+  contents: read      # per checkout e lettura repo
+  actions:  read      # per eseguire altri workflow
+  packages: write     # per upload/download artifact
+
+
+
 # Si attiva quando finisce con successo il training notturno
 on:
   workflow_run:

@@ -1,5 +1,11 @@
 name: Nightly Data Ingestion
 
+# autorizzazioni per upload‑artifact / download‑artifact
+permissions:
+  contents: read      # per checkout e lettura repo
+  actions:  read      # per eseguire altri workflow
+  packages: write     # per upload/download artifact
+  
 # 1) Trigger ogni notte alle 02:00 UTC
 on:
   schedule:

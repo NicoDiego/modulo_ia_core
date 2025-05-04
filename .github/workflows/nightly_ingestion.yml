@@ -1,4 +1,11 @@
 name: Nightly Metrics Ingestion
+
+# autorizzazioni per upload‑artifact / download‑artifact
+permissions:
+  contents: read      # per checkout e lettura repo
+  actions:  read      # per eseguire altri workflow
+  packages: write     # per upload/download artifact
+  
 on:
   schedule:
     - cron: '0 2 * * *'  # ogni giorno alle 02:00 UTC
