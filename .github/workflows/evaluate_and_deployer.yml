@@ -1,19 +1,18 @@
+# File: .github/workflows/evaluate_and_deployer.yml
 name: Evaluate & Deploy Model
 
-
-# autorizzazioni per upload‑artifact / download‑artifact
+# Permessi necessari per checkout e artifact
 permissions:
-  contents: read      # per checkout e lettura repo
-  actions:  read      # per eseguire altri workflow
-  packages: write     # per upload/download artifact
+  contents: read     # per checkout del codice
+  actions: write     # per download-artifact e upload-artifact
+  packages: write    # se usi packages (opzionale)
 
-
-
-# Si attiva quando finisce con successo il training notturno
+# Trigger: dopo il successo del training notturno
 on:
   workflow_run:
     workflows: ["Nightly Model Training"]
     types: [completed]
+  workflow_dispatch: # per test manuale
 
 jobs:
   evaluate:
@@ -21,8 +20,8 @@ jobs:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v3
 
       - name: Download trained model
         uses: actions/download-artifact@v3
@@ -30,7 +29,7 @@ jobs:
           name: trained-model
           path: models
 
-      - name: Setup Python
+      - name: Set up Python 3.10
         uses: actions/setup-python@v4
         with:
           python-version: '3.10'
@@ -39,11 +38,12 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Evaluate model
-        run: python scripts/evaluate_model.py \
-               --model-dir models \
-               --data-dir  data/processed
+        run: |
+          python scripts/evaluate_model.py \
+            --model-dir models \
+            --data-dir data/processed
 
-      - name: Upload metrics
+      - name: Upload evaluation metrics
         uses: actions/upload-artifact@v3
         with:
           name: evaluation-metrics
@@ -52,12 +52,12 @@ jobs:
   deploy:
     needs: evaluate
     runs-on: ubuntu-latest
-    # deploy solo se accuracy nuova > accuracy vecchia
+    # esegui il deploy solo se l'accuracy è migliorata
     if: ${{ fromJson(needs.evaluate.outputs.metrics).accuracy > fromJson(needs.evaluate.outputs.metrics_old).accuracy }}
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v3
 
       - name: Download trained model
         uses: actions/download-artifact@v3
@@ -65,6 +65,7 @@ jobs:
           name: trained-model
           path: models
 
-      - name: Deploy to production
-        run: python scripts/deploy_model.py \
-               --model-path models/model.h5
+      - name: Deploy model to production
+        run: |
+          python scripts/deploy_model.py \
+            --model-path models/model.h5
