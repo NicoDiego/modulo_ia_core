@@ -1,4 +1,4 @@
-# File: .github/workflows/nightly_metrics_ingestion.yml
+# File: .github/workflows/nightly_ingestion.yml
 name: Nightly Metrics Ingestion
 
 # autorizzazioni necessarie per checkout, workflow-run e artifact
@@ -8,8 +8,8 @@ permissions:
 
 on:
   schedule:
-    - cron: '0 2 * * *'  # ogni giorno alle 02:00 UTC
-  workflow_dispatch:    # abilita il “Run workflow” manuale
+    - cron: '0 2 * * *'    # ogni giorno alle 02:00 UTC
+  workflow_dispatch:      # abilita il “Run workflow” manuale
 
 jobs:
   ingest:
@@ -25,13 +25,14 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Set up Python
+      - name: Set up Python 3.10
         uses: actions/setup-python@v4
         with:
           python-version: '3.10'
 
       - name: Install dependencies
-        run: pip install --no-cache-dir -r requirements.txt
+        run: |
+          pip install --no-cache-dir -r requirements.txt
 
       - name: Run metrics ingestion
         run: |
