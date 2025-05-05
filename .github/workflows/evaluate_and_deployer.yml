@@ -1,27 +1,21 @@
 # File: .github/workflows/evaluate_and_deployer.yml
 name: Evaluate & Deploy Model
 
-# Trigger manuale e automatico al termine del training notturno
+permissions:
+  contents: read    # per checkout del repo
+  actions: write    # per upload/download-artifact
+
 on:
-  workflow_dispatch:
   workflow_run:
     workflows: ["Nightly Model Training"]
-    types:
-      - completed
-
-permissions:
-  contents: read    # per checkout
-  actions: write    # per upload/download-artifact
+    types: [completed]
+  workflow_dispatch:  # facoltativo, per trigger manuale
 
 jobs:
   evaluate:
+    name: Evaluate Model
     runs-on: ubuntu-latest
-    # esegue solo se il workflow di training è andato a buon fine
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
-    outputs:
-      metrics:     ${{ steps.parse-metrics.outputs.metrics }}
-      metrics_old: ${{ steps.parse-metrics.outputs.metrics_old }}
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -46,15 +40,6 @@ jobs:
             --model-dir models \
             --data-dir data/processed
 
-      - name: Parse evaluation metrics
-        id: parse-metrics
-        run: |
-          # Legge il JSON prodotto da evaluate_model.py
-          METRICS=$(jq -c . models/metrics.json)
-          # Per semplicità qui riutilizziamo gli stessi metrics come "old"
-          echo "::set-output name=metrics::$METRICS"
-          echo "::set-output name=metrics_old::$METRICS"
-
       - name: Upload evaluation metrics
         uses: actions/upload-artifact@v2
         with:
@@ -62,11 +47,10 @@ jobs:
           path: models/metrics.json
 
   deploy:
+    name: Conditional Deploy
     needs: evaluate
     runs-on: ubuntu-latest
-    # deploy solo se la nuova accuracy è maggiore della vecchia
-    if: ${{ fromJson(needs.evaluate.outputs.metrics).accuracy > fromJson(needs.evaluate.outputs.metrics_old).accuracy }}
-
+    if: ${{ fromJson(needs.evaluate.outputs.accuracy) > fromJson(needs.evaluate.outputs.previous_accuracy) }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
