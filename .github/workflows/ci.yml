@@ -48,3 +48,4 @@ jobs:
           push: false
           tags: modulo-ia-core:ci-latest
 
+
