@@ -1,23 +1,30 @@
 # File: .github/workflows/evaluate_and_deployer.yml
 name: Evaluate & Deploy Model
 
-
+# Trigger manuale e automatico al termine del training notturno
 on:
   workflow_dispatch:
-  schedule:
-    - cron: '0 2 * * *'
+  workflow_run:
+    workflows: ["Nightly Model Training"]
+    types:
+      - completed
 
 permissions:
-  contents: read
-  actions:  write
+  contents: read    # per checkout
+  actions: write    # per upload/download-artifact
 
 jobs:
   evaluate:
     runs-on: ubuntu-latest
+    # esegue solo se il workflow di training è andato a buon fine
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    outputs:
+      metrics:     ${{ steps.parse-metrics.outputs.metrics }}
+      metrics_old: ${{ steps.parse-metrics.outputs.metrics_old }}
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Download trained model
         uses: actions/download-artifact@v2
@@ -31,13 +38,22 @@ jobs:
           python-version: '3.10'
 
       - name: Install dependencies
-        run: pip install -r requirements.txt
+        run: pip install --no-cache-dir -r requirements.txt
 
       - name: Evaluate model
         run: |
           python scripts/evaluate_model.py \
             --model-dir models \
             --data-dir data/processed
+
+      - name: Parse evaluation metrics
+        id: parse-metrics
+        run: |
+          # Legge il JSON prodotto da evaluate_model.py
+          METRICS=$(jq -c . models/metrics.json)
+          # Per semplicità qui riutilizziamo gli stessi metrics come "old"
+          echo "::set-output name=metrics::$METRICS"
+          echo "::set-output name=metrics_old::$METRICS"
 
       - name: Upload evaluation metrics
         uses: actions/upload-artifact@v2
@@ -48,10 +64,12 @@ jobs:
   deploy:
     needs: evaluate
     runs-on: ubuntu-latest
+    # deploy solo se la nuova accuracy è maggiore della vecchia
     if: ${{ fromJson(needs.evaluate.outputs.metrics).accuracy > fromJson(needs.evaluate.outputs.metrics_old).accuracy }}
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Download trained model
         uses: actions/download-artifact@v2
