@@ -1,12 +1,19 @@
+# .github/workflows/nightly_metrics_ingestion.yml
 name: Nightly Metrics Ingestion
+
+permissions:
+  contents: read
+  actions: write
+  packages: write
 
 on:
   schedule:
-    - cron: '0 3 * * *'
+    - cron: '0 03 * * *'    # ogni giorno alle 03:00 UTC
   workflow_dispatch:
 
 jobs:
   ingest:
+    name: Ingest Metrics
     runs-on: ubuntu-latest
     env:
       DB_HOST:     ${{ secrets.DB_HOST }}
@@ -17,7 +24,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up Python 3.10
         uses: actions/setup-python@v4
@@ -25,9 +32,7 @@ jobs:
           python-version: '3.10'
 
       - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
+        run: pip install --no-cache-dir -r requirements.txt
 
       - name: Run metrics ingestion
         run: |
@@ -36,8 +41,9 @@ jobs:
             --conversions-path data/conversions.csv \
             --revenue-path     data/conversion_report.csv
 
-      - name: Upload metrics-report artifact
-        uses: actions/upload-artifact@v2
+      - name: Upload metrics artifact
+        uses: actions/upload-artifact@v3
         with:
           name: metrics-report
           path: modules/output/metrics.json
+
