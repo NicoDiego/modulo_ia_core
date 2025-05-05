@@ -1,20 +1,27 @@
+# .github/workflows/nightly_training.yml
 name: Nightly Model Training
+
+permissions:
+  contents: read
+  actions: write
+  packages: write
 
 on:
   schedule:
-    - cron: '30 4 * * *'
+    - cron: '30 04 * * *'    # ogni giorno alle 04:30 UTC
   workflow_dispatch:
 
 jobs:
   train:
+    name: Train Model
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v5
 
-      - name: Download processed-data artifact
-        uses: actions/download-artifact@v2
+      - name: Download processed data
+        uses: actions/download-artifact@v3
         with:
           name: processed-data
           path: data/processed
@@ -35,8 +42,9 @@ jobs:
             --data-dir data/processed \
             --out-dir  models
 
-      - name: Upload trained-model artifact
-        uses: actions/upload-artifact@v2
+      - name: Upload trained model
+        uses: actions/upload-artifact@v3
         with:
           name: trained-model
           path: models/**
+
