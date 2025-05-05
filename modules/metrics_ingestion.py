@@ -1,68 +1,60 @@
 #!/usr/bin/env python3
+# File: modules/metrics_ingestion.py
+
 import argparse
 import csv
 import json
 import os
+from db import insert_metrics  # il tuo stub in db.py
 
-from db import insert_metrics
-
-def load_csv_count(path):
-    """Carica un CSV con header e conta le righe (esclude header)."""
-    with open(path, newline='', encoding='utf-8') as f:
-        reader = csv.reader(f)
-        # salta header
-        next(reader, None)
-        return sum(1 for _ in reader)
-
-def load_revenue(path):
-    """Carica CSV con colonne [titolo_articolo, n_conversioni, guadagno_totale] 
-       e somma la colonna guadagno_totale."""
-    total = 0.0
-    with open(path, newline='', encoding='utf-8') as f:
-        reader = csv.DictReader(f)
-        for row in reader:
-            total += float(row['guadagno_totale'])
-    return total
-
-def main():
-    parser = argparse.ArgumentParser(
-        description="Esegue l'ingestion delle metriche e salva in DB + JSON"
-    )
+def parse_args():
+    parser = argparse.ArgumentParser(description="Ingest metrics from CSV and persist them")
     parser.add_argument(
         "--clicks-path", required=True,
-        help="Percorso a clicks.csv (header + una riga per click)"
+        help="Percorso al file CSV con i click"
     )
     parser.add_argument(
         "--conversions-path", required=True,
-        help="Percorso a conversions.csv (header + una riga per conversione)"
+        help="Percorso al file CSV con le conversioni"
     )
     parser.add_argument(
         "--revenue-path", required=True,
-        help="Percorso a conversion_report.csv (con colonna guadagno_totale)"
+        help="Percorso al file CSV con i ricavi"
     )
-    args = parser.parse_args()
+    return parser.parse_args()
 
-    # 1) Leggi i dati
-    clicks      = load_csv_count(args.clicks_path)
-    conversions = load_csv_count(args.conversions_path)
-    revenue     = load_revenue(args.revenue_path)
+def count_rows(path):
+    """Conta quante righe (escluse eventuali intestazioni) ci sono in un CSV."""
+    with open(path, newline="") as f:
+        reader = csv.reader(f)
+        header = next(reader, None)
+        return sum(1 for _ in reader)
 
-    metrics = {
-        "clicks":      clicks,
-        "conversions": conversions,
-        "revenue":     revenue
-    }
+def sum_revenue(path):
+    """Somma i valori della colonna 'revenue' (o ultima colonna) di un CSV."""
+    with open(path, newline="") as f:
+        reader = csv.DictReader(f)
+        # se non esiste la colonna 'revenue', prende l'ultima
+        key = "revenue" if "revenue" in reader.fieldnames else reader.fieldnames[-1]
+        return sum(float(row.get(key, 0)) for row in reader)
 
-    # 2) Inserisci in DB (stub)
-    insert_metrics(**metrics)
-    print(f"🔔 insert_metrics stub called with: {metrics}")
+def main():
+    args = parse_args()
 
-    # 3) Scrivi l'output JSON
+    clicks     = count_rows(args.clicks_path)
+    conversions= count_rows(args.conversions_path)
+    revenue    = sum_revenue(args.revenue_path)
+
+    # 1) Invia i dati al DB (stub)
+    insert_metrics(clicks=clicks, conversions=conversions, revenue=revenue)
+
+    # 2) Scrive su disco un JSON di output per il workflow
     out_dir = os.path.join(os.path.dirname(__file__), "output")
     os.makedirs(out_dir, exist_ok=True)
     out_path = os.path.join(out_dir, "metrics.json")
-    with open(out_path, "w", encoding="utf-8") as f:
-        json.dump(metrics, f, ensure_ascii=False, indent=2)
+    metrics = {"clicks": clicks, "conversions": conversions, "revenue": revenue}
+    with open(out_path, "w") as f:
+        json.dump(metrics, f)
     print(f"✅ Metrics saved to {out_path}: {metrics}")
 
 if __name__ == "__main__":
