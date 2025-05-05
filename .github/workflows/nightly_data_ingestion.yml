@@ -1,17 +1,15 @@
-# Salva questo sotto .github/workflows/nightly_data_ingestion.yml
-
+# File: .github/workflows/nightly_data_ingestion.yml
 name: Nightly Data Ingestion
 
-# Permessi necessari per fare checkout e upload-artifact
+# Permessi necessari per checkout e upload/download artifact
 permissions:
-  contents: read      # per actions/checkout
-  actions: read      # perché usiamo workflow_dispatch
-  artifacts: write   # per actions/upload-artifact
+  contents: read     # per actions/checkout
+  actions: write     # per actions/upload/download-artifact
 
 on:
   schedule:
-    - cron: '0 2 * * *'   # tutte le notti alle 02:00 UTC
-  workflow_dispatch:     # abilita il pulsante “Run workflow” manuale
+    - cron: '0 2 * * *'   # ogni notte alle 02:00 UTC
+  workflow_dispatch:     # abilita il “Run workflow” manuale
 
 jobs:
   ingestion:
