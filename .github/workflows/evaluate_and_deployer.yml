@@ -1,14 +1,15 @@
 # File: .github/workflows/evaluate_and_deployer.yml
 name: Evaluate & Deploy Model
 
-permissions:
-  contents: read
-  actions: write
 
 on:
-  workflow_run:
-    workflows: ["Nightly Model Training"]
-    types: [completed]
+  workflow_dispatch:
+  schedule:
+    - cron: '0 2 * * *'
+
+permissions:
+  contents: read
+  actions:  write
 
 jobs:
   evaluate:
