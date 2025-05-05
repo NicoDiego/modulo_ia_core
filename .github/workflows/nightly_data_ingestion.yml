@@ -1,17 +1,22 @@
 # File: .github/workflows/nightly_data_ingestion.yml
 name: Nightly Data Ingestion
 
+permissions:
+  contents: read    # per actions/checkout
+  actions:  read    # per poter scaricare le action
+  packages: write   # per upload/download artifact
+
 on:
   schedule:
-    - cron: '0 2 * * *'   # ogni notte alle 02:00 UTC
-  workflow_dispatch:     # abilita il trigger manuale
+    - cron: '0 3 * * *'    # ogni giorno alle 03:00 UTC
+  workflow_dispatch:      # abilita il trigger manuale ("Run workflow")
 
 jobs:
   ingestion:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Set up Python 3.10
@@ -31,7 +36,7 @@ jobs:
             --output data/processed
 
       - name: Upload processed data
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: processed-data
           path: data/processed/
