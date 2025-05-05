@@ -1,15 +1,16 @@
+# File: .github/workflows/nightly_model_training.yml
 name: Nightly Model Training
 
-# autorizzazioni necessarie per checkout, workflow-run e artifact
+# autorizzazioni necessarie per checkout, download e upload artifact
 permissions:
   contents: read    # per checkout del codice
-  actions: write    # per upload/download-artifact
-  packages: write   # se usi packages
+  actions: read     # per download-artifact/upload-artifact
+  packages: write   # se usi pacchetti GitHub
 
 on:
   schedule:
     - cron: '30 2 * * *'   # ogni notte alle 02:30 UTC
-  workflow_dispatch:      # abilita il “Run workflow” manuale
+  workflow_dispatch:      # abilita il trigger manuale
 
 jobs:
   train:
@@ -42,6 +43,7 @@ jobs:
             --out-dir models
 
       - name: Upload trained model
+        if: always()
         uses: actions/upload-artifact@v3
         with:
           name: trained-model
