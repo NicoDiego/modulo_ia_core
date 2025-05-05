@@ -1,16 +1,13 @@
-# File: .github/workflows/nightly_model_training.yml
 name: Nightly Model Training
 
-# autorizzazioni per upload-artifact / download-artifact
 permissions:
-  contents: read      # per checkout e lettura repo
-  actions:  read      # per eseguire eventuali workflow-run
-  packages: write     # per upload/download artifact
+  contents: read
+  actions:  read
+  packages: write
 
-# Trigger ogni notte alle 02:30 UTC + manuale
 on:
   schedule:
-    - cron: '30 2 * * *'
+    - cron: '30 2 * * *'  # ogni notte alle 02:30 UTC
   workflow_dispatch:
 
 jobs:
@@ -18,41 +15,34 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1) Checkout del codice
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2) Download dei dati processati
       - name: Download processed data
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: processed-data
           path: data/processed
 
-      # 3) Setup Python 3.10
-      - name: Set up Python
+      - name: Set up Python 3.10
         uses: actions/setup-python@v4
         with:
           python-version: '3.10'
 
-      # 4) Installa le dipendenze
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      # 5) Esegui lo script di training
       - name: Run training
         run: |
           python scripts/train_model.py \
             --data-dir data/processed \
             --out-dir models
 
-      # 6) Salva modello e metriche come artifact
       - name: Upload trained model & metrics
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: trained-model
-          path: |
-            models/**
+          path: models/**
 
