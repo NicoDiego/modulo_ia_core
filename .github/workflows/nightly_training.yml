@@ -2,18 +2,18 @@
 name: Nightly Model Training
 
 permissions:
-  contents: read      # checkout del repo
-  actions:  read      # per leggere l’artifact dal workflow di ingestion
-  packages: write     # per caricare il modello addestrato
+  contents: read
+  actions:  read
+  packages: write
 
 on:
   workflow_run:
     workflows: ["Nightly Data Ingestion"]
     types: [completed]
+  workflow_dispatch:
 
 jobs:
   train:
-    name: Train & Upload Model
     runs-on: ubuntu-latest
 
     steps:
@@ -48,4 +48,3 @@ jobs:
         with:
           name: trained-model
           path: models/**
-
