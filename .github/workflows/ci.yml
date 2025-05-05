@@ -1,10 +1,18 @@
+# File: .github/workflows/ci.yml
 name: CI/CD Pipeline
+
+permissions:
+  contents: read
+  actions: write
 
 on:
   push:
     branches: [ main ]
   pull_request:
     branches: [ main ]
+  schedule:
+    - cron: '0 3 * * *'     # esecuzione notturna alle 03:00 UTC
+  workflow_dispatch:       # “Run workflow” manuale
 
 jobs:
   build-and-test:
@@ -23,17 +31,15 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+          pip install flake8 pytest
 
       - name: Lint with flake8
         run: |
-          pip install flake8
-          flake8 . --max-line-length=120 \
-            --ignore=E221,E302,E303,E402,E241,E305 \
-            --exclude=.github,venv
+          flake8 .
 
       - name: Run tests
         run: |
-          pytest --maxfail=1 --disable-warnings -q || echo "⚠️ No tests found."
+          pytest --maxfail=1 --disable-warnings -q || echo "⚠️ Nessun test trovato, continuo lo stesso."
 
       - name: Build Docker image
         uses: docker/build-push-action@v4
