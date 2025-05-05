@@ -1,10 +1,11 @@
 # File: .github/workflows/nightly_metrics_ingestion.yml
 name: Nightly Metrics Ingestion
 
+# Permessi minimi per checkout e artifact
 permissions:
-  contents: read      # per checkout del codice
-  actions:  write     # per upload/download-artifact
-  packages: write     # se usi package registry (opzionale)
+  contents: read      # per actions/checkout
+  actions: write      # per upload/download-artifact
+  packages: write     # se usi GitHub Package Registry (opzionale)
 
 on:
   schedule:
@@ -42,8 +43,6 @@ jobs:
             --conversions-path data/conversions.csv \
             --revenue-path     data/conversion_report.csv
 
-      - name: Upload metrics artifact
-        uses: actions/upload-artifact@v3
       - name: Upload metrics artifact
         uses: actions/upload-artifact@v2
         with:
