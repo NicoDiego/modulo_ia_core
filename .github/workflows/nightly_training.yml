@@ -8,9 +8,11 @@ permissions:
   packages: write     # per upload/download artifact
 
 on:
-  schedule:
-    - cron: '30 2 * * *'   # ogni notte alle 02:30 UTC
-  workflow_dispatch:       # abilita il “Run workflow” manuale
+  workflow_run:
+    workflows: ["Nightly Data Ingestion"]
+    types: [completed]
+  workflow_dispatch: 
+
 
 jobs:
   train:
@@ -26,6 +28,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: processed-data
+          run-id: ${{ github.event.workflow_run.id }}
           path: data/processed
 
       # 3) Prepara Python
