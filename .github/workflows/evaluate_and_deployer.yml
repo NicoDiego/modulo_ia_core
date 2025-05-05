@@ -20,11 +20,13 @@ jobs:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v4
 
       - name: Download trained model
         uses: actions/download-artifact@v3
+        name: Download trained model
+        uses: actions/download-artifact@v2
         with:
           name: trained-model
           path: models
@@ -43,10 +45,12 @@ jobs:
             --model-dir models \
             --data-dir data/processed
 
-      - name: Upload evaluation metrics
+      - name: Upload metrics
         uses: actions/upload-artifact@v3
+      - name: Upload metrics
+        uses: actions/upload-artifact@v2
         with:
-          name: evaluation-metrics
+          name: metrics
           path: models/metrics.json
 
   deploy:
@@ -61,6 +65,8 @@ jobs:
 
       - name: Download trained model
         uses: actions/download-artifact@v3
+      - name: Download trained model
+        uses: actions/download-artifact@v2
         with:
           name: trained-model
           path: models
@@ -69,3 +75,4 @@ jobs:
         run: |
           python scripts/deploy_model.py \
             --model-path models/model.h5
+
