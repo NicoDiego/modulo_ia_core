@@ -49,7 +49,7 @@ jobs:
 
       # 5) Salva il JSON di output come artifact
       - name: Upload metrics artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: metrics-report
           path: modules/output/metrics.json
