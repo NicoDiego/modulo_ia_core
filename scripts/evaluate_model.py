@@ -1,38 +1,43 @@
 #!/usr/bin/env python3
-import os
-import json
+# File: scripts/evaluate_model.py
+
 import argparse
+import json
+import os
+
+def parse_args():
+    parser = argparse.ArgumentParser(
+        description="Evaluate model performance and emit metrics for GitHub Actions"
+    )
+    parser.add_argument(
+        "--model-dir",
+        required=True,
+        help="Directory where the trained model and metrics.json are stored"
+    )
+    parser.add_argument(
+        "--data-dir",
+        required=True,
+        help="Directory containing the processed data for evaluation"
+    )
+    return parser.parse_args()
 
 def main():
-    p = argparse.ArgumentParser()
-    p.add_argument("--model-dir",  required=True)
-    p.add_argument("--data-dir",   required=True)
-    args = p.parse_args()
+    args = parse_args()
+    metrics_path = os.path.join(args.model_dir, "metrics.json")
 
-    # Qui metteresti la tua evaluation vera, per ora stub:
-    # Carica modello (stub), carica dati (stub)…
-    # Calcola metriche finte:
-    metrics = {
-        "accuracy":       0.75,
-        "precision":      0.80,
-        "recall":         0.70,
-        # …  
-    }
-    # Mettiamo anche un “vecchio” per il confronto nel deploy condizionale
-    metrics_old = {
-        "accuracy": 0.70
-    }
+    # Carica il file JSON prodotto dallo script di training
+    with open(metrics_path, "r") as f:
+        metrics = json.load(f)
 
-    # Assicurati che la cartella di output esista
-    out_dir = args.model_dir
-    os.makedirs(out_dir, exist_ok=True)
+    # Estrai le metriche chiave, usando 0 come default
+    accuracy = metrics.get("accuracy", 0)
+    previous_accuracy = metrics.get("previous_accuracy", 0)
 
-    # Scrivi metrics.json
-    out_path = os.path.join(out_dir, "metrics.json")
-    with open(out_path, "w") as f:
-        json.dump({"metrics": metrics, "metrics_old": metrics_old}, f)
+    # Stampa in console per i log e imposta gli output per GitHub Actions
+    print(f"✅ Current accuracy: {accuracy}")
+    print(f"ℹ️ Previous accuracy: {previous_accuracy}")
+    print(f"::set-output name=accuracy::{accuracy}")
+    print(f"::set-output name=previous_accuracy::{previous_accuracy}")
 
-    print(f"✅ Written metrics to {out_path}")
-
-if __name__=="__main__":
+if __name__ == "__main__":
     main()
