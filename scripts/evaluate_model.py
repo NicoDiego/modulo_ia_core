@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 # File: scripts/evaluate_model.py
 
 import argparse
@@ -25,15 +25,12 @@ def main():
     args = parse_args()
     metrics_path = os.path.join(args.model_dir, "metrics.json")
 
-    # Carica il file JSON prodotto dallo script di training
     with open(metrics_path, "r") as f:
         metrics = json.load(f)
 
-    # Estrai le metriche chiave, usando 0 come default
     accuracy = metrics.get("accuracy", 0)
     previous_accuracy = metrics.get("previous_accuracy", 0)
 
-    # Stampa in console per i log e imposta gli output per GitHub Actions
     print(f"✅ Current accuracy: {accuracy}")
     print(f"ℹ️ Previous accuracy: {previous_accuracy}")
     print(f"::set-output name=accuracy::{accuracy}")
