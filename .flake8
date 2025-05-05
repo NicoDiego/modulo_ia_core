@@ -1,0 +1,13 @@
+# .flake8
+[flake8]
+max-line-length = 120
+ignore =
+    E221,E302,E303,E402,E241,E305,E272,
+    W291,W292,W293,W391,
+    E226,E401,
+    F401,F811,F821,F841,
+    E501
+exclude =
+    .github,
+    venv,
+    __pycache__
