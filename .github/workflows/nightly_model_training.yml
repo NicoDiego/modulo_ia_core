@@ -1,15 +1,16 @@
-# File: .github/workflows/nightly_model_training.yml
+# File: .github/workflows/nightly_training.yml
 name: Nightly Model Training
 
+# → Serve per permettere download/upload artifact
 permissions:
-  contents: read     # per checkout
-  actions:  read     # per download-artifact
-  packages: write    # se usi pacchetti / upload-artifact
+  contents: read    # per actions/checkout
+  actions: write    # per download-artifact e upload-artifact
+  packages: write   # se usi package registry (opzionale)
 
 on:
   schedule:
-    - cron: '30 2 * * *'   # ogni notte alle 02:30 UTC
-  workflow_dispatch:      # consente il Run workflow manuale
+    - cron: '30 2 * * *'  # ogni notte alle 02:30 UTC
+  workflow_dispatch:      # abilita “Run workflow” manuale
 
 jobs:
   train:
@@ -17,10 +18,11 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
 
       - name: Download processed data
-        uses: actions/download-artifact@v2    # ← qui ho cambiato v3 → v2
+        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v2
         with:
           name: processed-data
           path: data/processed
@@ -41,16 +43,12 @@ jobs:
             --data-dir data/processed \
             --out-dir models
 
-      - name: Upload trained model
-        if: always()
+      - name: Upload trained model & metrics
         uses: actions/upload-artifact@v3
+      - name: Upload trained model & metrics
+        uses: actions/upload-artifact@v2
         with:
           name: trained-model
-          path: models/**
+          path: |
+            models/**
 
-      - name: Upload training metrics
-        if: always()
-        uses: actions/upload-artifact@v3
-        with:
-          name: training-metrics
-          path: models/metrics.json
