@@ -1,16 +1,15 @@
 # File: .github/workflows/nightly_model_training.yml
 name: Nightly Model Training
 
-# autorizzazioni necessarie per checkout, download e upload artifact
 permissions:
-  contents: read    # per checkout del codice
-  actions: read     # per download-artifact/upload-artifact
-  packages: write   # se usi pacchetti GitHub
+  contents: read     # per checkout
+  actions:  read     # per download-artifact
+  packages: write    # se usi pacchetti / upload-artifact
 
 on:
   schedule:
     - cron: '30 2 * * *'   # ogni notte alle 02:30 UTC
-  workflow_dispatch:      # abilita il trigger manuale
+  workflow_dispatch:      # consente il Run workflow manuale
 
 jobs:
   train:
@@ -21,7 +20,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Download processed data
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v2    # ← qui ho cambiato v3 → v2
         with:
           name: processed-data
           path: data/processed
