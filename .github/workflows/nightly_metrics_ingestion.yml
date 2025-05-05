@@ -1,11 +1,18 @@
 # File: .github/workflows/nightly_metrics_ingestion.yml
 name: Nightly Metrics Ingestion
 
+<<<<<<< HEAD
 # Permessi minimi per checkout e artifact
 permissions:
   contents: read      # per actions/checkout
   actions: write      # per upload/download-artifact
   packages: write     # se usi GitHub Package Registry (opzionale)
+=======
+permissions:
+  contents: read      # per checkout del codice
+  actions:  write     # per upload/download-artifact
+  packages: write     # se usi package registry (opzionale)
+>>>>>>> 1512be1 (Fix GH Actions: switch upload/download-artifact to @v2)
 
 on:
   schedule:
@@ -44,6 +51,11 @@ jobs:
             --revenue-path     data/conversion_report.csv
 
       - name: Upload metrics artifact
+<<<<<<< HEAD
+=======
+        uses: actions/upload-artifact@v3
+      - name: Upload metrics artifact
+>>>>>>> 1512be1 (Fix GH Actions: switch upload/download-artifact to @v2)
         uses: actions/upload-artifact@v2
         with:
           name: metrics-report
