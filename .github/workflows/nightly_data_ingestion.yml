@@ -1,15 +1,10 @@
 # File: .github/workflows/nightly_data_ingestion.yml
 name: Nightly Data Ingestion
 
-# Permessi necessari per checkout e upload/download artifact
-permissions:
-  contents: read     # per actions/checkout
-  actions: write     # per actions/upload/download-artifact
-
 on:
   schedule:
     - cron: '0 2 * * *'   # ogni notte alle 02:00 UTC
-  workflow_dispatch:     # abilita il “Run workflow” manuale
+  workflow_dispatch:     # abilita il trigger manuale
 
 jobs:
   ingestion:
@@ -30,10 +25,13 @@ jobs:
           pip install -r requirements.txt
 
       - name: Run data ingestion
-        run: python scripts/ingest_data.py --input data/raw --output data/processed
+        run: |
+          python scripts/ingest_data.py \
+            --input data/raw \
+            --output data/processed
 
       - name: Upload processed data
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v2
         with:
           name: processed-data
           path: data/processed/
