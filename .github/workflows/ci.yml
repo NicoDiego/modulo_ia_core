@@ -17,8 +17,9 @@ on:
 
 jobs:
   lint-and-test:
-    name: Lint, Test & Security
+    name: Lint & Test & Security
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -48,9 +49,9 @@ jobs:
             --ignore=E221,E302,E303,E402,E241,E305,E272,W291,W292,W293,W391,E226,E401,F401,F811,F821,F841,E501 \
             --exclude=.github,venv
 
-      - name: Run pytest
+      - name: Run tests
         run: |
-          pytest --maxfail=1 --disable-warnings -q
+          pytest tests modules/tests --maxfail=1 --disable-warnings -q
 
       - name: Security audit
         run: |
@@ -60,6 +61,7 @@ jobs:
     name: Build Docker image
     needs: lint-and-test
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
