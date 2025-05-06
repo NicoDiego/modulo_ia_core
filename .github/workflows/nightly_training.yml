@@ -1,8 +1,15 @@
+# File: .github/workflows/nightly_model_training.yml
 name: Nightly Model Training
 
+permissions:
+  contents: read
+  actions:  read
+  packages: write
+
 on:
-  schedule:
-    - cron: '30 4 * * *'
+  workflow_run:
+    workflows: ["Nightly Data Ingestion"]
+    types: [completed]
   workflow_dispatch:
 
 jobs:
@@ -13,10 +20,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Download processed-data artifact
-        uses: actions/download-artifact@v2
+      - name: Download processed data
+        uses: actions/download-artifact@v4
         with:
           name: processed-data
+          run-id: ${{ github.event.workflow_run.id }}
           path: data/processed
 
       - name: Set up Python 3.10
@@ -33,10 +41,10 @@ jobs:
         run: |
           python scripts/train_model.py \
             --data-dir data/processed \
-            --out-dir  models
+            --out-dir models
 
-      - name: Upload trained-model artifact
-        uses: actions/upload-artifact@v2
+      - name: Upload trained model & metrics
+        uses: actions/upload-artifact@v4
         with:
           name: trained-model
           path: models/**

@@ -41,8 +41,11 @@ jobs:
             --output data/processed
 
       # 6) Salva i dati elaborati come artifact (opzionale)
+<<<<<<< HEAD
       - name: Upload processed data  
         uses: actions/upload-artifact@v3
+=======
+>>>>>>> 87cc1b78cb6d087006a5c45baf274ac03bf9d2e5
       - name: Upload processed data
         uses: actions/upload-artifact@v4
         with:
