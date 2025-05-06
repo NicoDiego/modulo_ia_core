@@ -17,7 +17,7 @@ on:
 
 jobs:
   lint-and-test:
-    name: Lint & Test & Security
+    name: Lint, Test & Security
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -50,11 +50,11 @@ jobs:
 
       - name: Run pytest
         run: |
-          pytest --maxfail=1 --disable-warnings -q || echo "⚠️ Nessun test trovato."
+          pytest --maxfail=1 --disable-warnings -q
 
       - name: Security audit
         run: |
-          pip-audit --ignore-in-use
+          pip-audit
 
   build-docker:
     name: Build Docker image
@@ -70,4 +70,3 @@ jobs:
           context: .
           push: false
           tags: modulo-ia-core:ci-latest
-
