@@ -1,78 +1,67 @@
 #!/usr/bin/env python3
-# File: modules/metrics_ingestion.py
+# modules/metrics_ingestion.py
 
-import argparse
+import os
 import csv
 import json
-import os
-from db import insert_metrics  # il tuo stub in db.py
+from config.settings_loader import BASE_DIR
 
+def _safe_int(val, default=999):
+    try:
+        return int(val)
+    except Exception:
+        return default
 
-def parse_args():
-    parser = argparse.ArgumentParser(
-        description="Ingest metrics from CSV and persist them"
-    )
-    parser.add_argument(
-        "--clicks-path",
-        required=True,
-        help="Percorso al file CSV con i click",
-    )
-    parser.add_argument(
-        "--conversions-path",
-        required=True,
-        help="Percorso al file CSV con le conversioni",
-    )
-    parser.add_argument(
-        "--revenue-path",
-        required=True,
-        help="Percorso al file CSV con i ricavi",
-    )
-    return parser.parse_args()
+def _safe_float(val, default=0.0):
+    try:
+        return float(val)
+    except Exception:
+        return default
 
+def ingest_metrics(conversions_path: str, output_path: str):
+    """
+    Legge un CSV di conversioni con colonne slug,pos,ctr,revenue
+    e scrive output_path (metrics.json) mappando per slug.
+    Se il valore di pos/ctr/revenue non è convertibile, usa default.
+    """
+    metrics = {}
 
-def count_rows(path):
-    """Conta quante righe (escluse eventuali intestazioni) ci sono in un CSV."""
-    with open(path, newline="") as f:
-        reader = csv.reader(f)
-        next(reader, None)
-        return sum(1 for _ in reader)
-
-
-def sum_revenue(path):
-    """Somma i valori della colonna 'revenue' (o ultima colonna) di un CSV."""
-    with open(path, newline="") as f:
+    with open(conversions_path, newline='', encoding='utf-8') as f:
         reader = csv.DictReader(f)
-        key = "revenue" if "revenue" in reader.fieldnames else reader.fieldnames[-1]
-        return sum(float(row.get(key, 0)) for row in reader)
+        fields = reader.fieldnames or []
+
+        slug_key = "slug" if "slug" in fields else fields[0]
+        pos_key  = "pos"  if "pos"  in fields else (fields[1] if len(fields)>1 else slug_key)
+        ctr_key  = "ctr"  if "ctr"  in fields else (fields[2] if len(fields)>2 else "")
+        rev_key  = "revenue" if "revenue" in fields else (fields[3] if len(fields)>3 else "")
+
+        for row in reader:
+            slug = row.get(slug_key, "").strip()
+            if not slug:
+                continue
+
+            metrics[slug] = {
+                'position': _safe_int(row.get(pos_key, None), 999),
+                'ctr':      _safe_float(row.get(ctr_key, None), 0.0),
+                'revenue':  _safe_float(row.get(rev_key, None), 0.0)
+            }
+
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    with open(output_path, 'w', encoding='utf-8') as f:
+        json.dump(metrics, f, ensure_ascii=False, indent=2)
+
+    print(f"✅ Saved metrics for {len(metrics)} articles to {output_path}")
 
 
-def main():
-    args = parse_args()
+if __name__ == '__main__':
+    import argparse
+    parser = argparse.ArgumentParser(description="Ingest per-article SEO metrics")
+    parser.add_argument(
+        '--conversions-path',
+        required=True,
+        help="CSV con colonne slug,pos,ctr,revenue (o simili)"
+    )
+    args = parser.parse_args()
 
-    clicks = count_rows(args.clicks_path)
-    conversions = count_rows(args.conversions_path)
-    revenue = sum_revenue(args.revenue_path)
-
-    # 1) Invia i dati al DB (stub)
-    insert_metrics(clicks=clicks, conversions=conversions, revenue=revenue)
-
-    # 2) Scrive su disco un JSON di output per il workflow
-    out_dir = os.path.join(os.path.dirname(__file__), "output")
-    os.makedirs(out_dir, exist_ok=True)
-    out_path = os.path.join(out_dir, "metrics.json")
-
-    metrics = {
-        "clicks":      clicks,
-        "conversions": conversions,
-        "revenue":     revenue,
-    }
-
-    with open(out_path, "w") as f:
-        json.dump(metrics, f)
-
-    print(f"✅ Metrics saved to {out_path}: {metrics}")
-
-
-if __name__ == "__main__":
-    main()
-
+    out = os.path.join(BASE_DIR, 'modules', 'output', 'metrics.json')
+    ingest_metrics(args.conversions_path, out)
