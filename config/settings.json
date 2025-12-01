@@ -1,6 +1,6 @@
 {
   "openai_api_key": "sk-…",
-  "pixabay_api_key": "key,
+  "pixabay_api_key": "key",
   "wp_site_url": "https://#",
   "wp_token": "token",
   "languages": [
