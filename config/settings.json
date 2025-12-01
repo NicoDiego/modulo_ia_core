@@ -1,8 +1,8 @@
 {
   "openai_api_key": "sk-…",
-  "pixabay_api_key": "46296383-2b959b198c6b91ebdfd0d1aaa",
-  "wp_site_url": "https://salutealbenessere.it",
-  "wp_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczovL3NhbHV0ZWFsYmVuZXNzZXJlLml0IiwiaWF0IjoxNzQ1Njc2NDY3LCJuYmYiOjE3NDU2NzY0NjcsImV4cCI6MTc0NjI4MTI2NywiZGF0YSI6eyJ1c2VyIjp7ImlkIjoiMyJ9fX0.wyIbPU-zrXGpvB0M9Lywuc5RStUauLHM_q9MjSDIu7Q",
+  "pixabay_api_key": "key,
+  "wp_site_url": "https://#",
+  "wp_token": "token",
   "languages": [
     "it",
     "en",
